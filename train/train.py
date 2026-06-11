@@ -74,6 +74,7 @@ def load_datasets(config: TrainingConfig, tokenizer: AutoTokenizer):
 
 def build_sft_config(config: TrainingConfig) -> SFTConfig:
     use_bf16 = config.bf16 and torch.cuda.is_bf16_supported()
+    sft_params = inspect.signature(SFTConfig).parameters
     kwargs: dict = dict(
         output_dir=config.checkpoint_dir,
         num_train_epochs=config.num_train_epochs,
@@ -89,15 +90,13 @@ def build_sft_config(config: TrainingConfig) -> SFTConfig:
         bf16=use_bf16,
         fp16=not use_bf16,
         gradient_checkpointing=config.gradient_checkpointing,
-        max_seq_length=config.max_seq_len,
         dataset_text_field="text",
         packing=False,
         report_to="none",
         save_total_limit=2,
     )
-    # Train loss on assistant tokens only (trl >= 0.12).
-    if "assistant_only_loss" in inspect.signature(SFTConfig).parameters:
-        kwargs["assistant_only_loss"] = True
+    seq_len_arg = "max_length" if "max_length" in sft_params else "max_seq_length"
+    kwargs[seq_len_arg] = config.max_seq_len
     return SFTConfig(**kwargs)
 
 
