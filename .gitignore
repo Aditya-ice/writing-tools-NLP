@@ -1,0 +1,46 @@
+# Model weights and artifacts (push to HuggingFace Hub instead)
+adapter/
+fused/
+mlx_model/
+checkpoints/
+*.gguf
+
+# Generated datasets
+data/*.jsonl
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Experiment tracking
+wandb/
+
+# Secrets and local config
+.env
+.env.*
+*.pem
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# MLX / torch caches
+.cache/
+*.safetensors
