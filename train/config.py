@@ -46,6 +46,8 @@ class TrainingConfig:
     weight_decay: float = 0.01
     logging_steps: int = 10
     save_steps: int = 100
+    # Mid-training eval OOMs on T4/P100 at max_seq_len=1536; use train/eval.py instead.
+    eval_strategy: str = "no"
     eval_steps: int = 100
     bf16: bool = True
     gradient_checkpointing: bool = True

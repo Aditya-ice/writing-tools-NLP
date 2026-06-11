@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SFT training with QLoRA (run on Colab T4 — not on Mac)."""
+"""SFT training with QLoRA (run on Kaggle/Colab GPU — not on Mac)."""
 
 from __future__ import annotations
 
@@ -85,8 +85,7 @@ def build_sft_config(config: TrainingConfig) -> SFTConfig:
         weight_decay=config.weight_decay,
         logging_steps=config.logging_steps,
         save_steps=config.save_steps,
-        eval_strategy="steps",
-        eval_steps=config.eval_steps,
+        eval_strategy=config.eval_strategy,
         bf16=use_bf16,
         fp16=not use_bf16,
         gradient_checkpointing=config.gradient_checkpointing,
@@ -95,6 +94,8 @@ def build_sft_config(config: TrainingConfig) -> SFTConfig:
         report_to="none",
         save_total_limit=2,
     )
+    if config.eval_strategy != "no":
+        kwargs["eval_steps"] = config.eval_steps
     seq_len_arg = "max_length" if "max_length" in sft_params else "max_seq_length"
     kwargs[seq_len_arg] = config.max_seq_len
     return SFTConfig(**kwargs)
@@ -114,13 +115,15 @@ def train(config: TrainingConfig, resume_from_checkpoint: str | None) -> None:
     datasets = load_datasets(config, tokenizer)
     sft_config = build_sft_config(config)
 
-    trainer = SFTTrainer(
+    trainer_kwargs: dict = dict(
         model=model,
         args=sft_config,
         train_dataset=datasets["train"],
-        eval_dataset=datasets["validation"],
         processing_class=tokenizer,
     )
+    if config.eval_strategy != "no":
+        trainer_kwargs["eval_dataset"] = datasets["validation"]
+    trainer = SFTTrainer(**trainer_kwargs)
 
     print(f"Training {config.model_id} with QLoRA")
     print(f"  train examples: {len(datasets['train'])}")

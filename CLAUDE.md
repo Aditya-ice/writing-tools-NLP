@@ -38,11 +38,11 @@ distilgpt2-draft setup would be mathematically invalid. Qwen3 is also Apache 2.0
 currently the most widely used small open-model family.
 
 **Hardware split:**
-- Training: free Colab T4 (QLoRA, 4-bit). Never train locally.
+- Training: **Kaggle GPU** (primary — ~9h sessions, 30 GPU h/week) or Colab T4 with Drive resume. QLoRA 4-bit. Never train locally on Mac.
 - On-device inference benchmark: MacBook Air M1 8GB via MLX (4-bit, inference only).
 - Demo hosting: HuggingFace Spaces (see deployment notes — CPU is the constraint).
 
-Expected training time: 1.5–2.5 hours for 1 epoch on ~4k examples at max_seq_len=1536.
+Expected training time: ~6–8 hours for 1 epoch on ~4k examples at max_seq_len=1536 (4B on T4/P100). Mid-training eval is disabled; run `train/eval.py` post-training.
 
 ---
 
@@ -81,7 +81,8 @@ writing-tools-nlp/
 │   └── requirements.txt            # Spaces-specific deps
 │
 └── notebooks/
-    └── train_colab.ipynb           # self-contained Colab notebook (entire training pipeline)
+    ├── train_kaggle.ipynb          # primary: Kaggle GPU training + eval (~7–10h)
+    └── train_colab.ipynb           # fallback: Colab with Drive checkpoint resume
 ```
 
 ---
@@ -103,9 +104,10 @@ python data/prepare.py
 
 ### Train
 ```bash
-# Colab T4 only — open notebooks/train_colab.ipynb
-# (train/train.py exists so the notebook is a thin wrapper, not the source of truth)
-python train/train.py --resume_from_checkpoint ./checkpoints/   # if session died
+# Kaggle GPU (primary) — open notebooks/train_kaggle.ipynb
+# Colab fallback — notebooks/train_colab.ipynb (mount Drive for checkpoint resume)
+# (train/train.py is the source of truth; notebooks are thin wrappers)
+python train/train.py --resume_from_checkpoint ./checkpoints/checkpoint-100   # if session died
 ```
 
 ### Evaluate
@@ -350,9 +352,12 @@ Recruiters skim the tables; engineers read this. Must cover, briefly:
   `.gitignore`. Push to HF Hub only.
 - **Do not commit data files** — `data/*.jsonl` are generated locally. Add to
   `.gitignore`. Keep `data/prepare.py` as the reproducible source.
-- **Colab session limits** — free T4 sessions die after ~3–4h. SFTTrainer saves
-  checkpoints every 100 steps; resume with `--resume_from_checkpoint ./checkpoints/`.
-  This is also why the dataset is capped at ~4k examples.
+- **GPU session limits** — Kaggle free tier: ~9h/session, 30 GPU h/week (preferred for 4B).
+  Colab free tier: ~2–3h/session; use Google Drive checkpoint symlink + resume.
+  SFTTrainer saves checkpoints every 100 steps; resume with
+  `--resume_from_checkpoint ./checkpoints/checkpoint-XXX`.
+  Mid-training eval is disabled (`eval_strategy="no"`) — it OOMs on T4 at max_seq_len=1536;
+  run `train/eval.py` after training instead.
 - **Qwen3 thinking mode** — Qwen3 instruct models support a thinking mode; disable it
   for these tasks (`enable_thinking=False` in `apply_chat_template`) or outputs will
   contain reasoning traces that wreck ROUGE scores and the Smart Reply JSON.
@@ -371,7 +376,7 @@ Recruiters skim the tables; engineers read this. Must cover, briefly:
 - [ ] Repo scaffolded
 - [ ] `data/prepare.py` working, train.jsonl generated (~4k examples)
 - [ ] `train/config.py` QLoRA config set
-- [ ] `train/train.py` SFTTrainer running (Colab T4)
+- [ ] `train/train.py` SFTTrainer running (Kaggle GPU or Colab T4)
 - [ ] Training complete, loss converged
 - [ ] `train/eval.py` ROUGE + BERTScore computed
 - [ ] Eval table filled in README
