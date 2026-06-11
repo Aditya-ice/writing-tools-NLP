@@ -73,7 +73,7 @@ writing-tools-nlp/
 │   ├── latency.py                  # standard vs speculative vs HF assisted generation
 │   └── mlx_bench.py                # tokens/sec on Apple Silicon (run locally on M1)
 │
-├── mlx/
+├── mlx_tools/
 │   └── convert.py                  # fuse adapter → convert to MLX 4-bit → save
 │
 ├── app/
@@ -134,7 +134,7 @@ python benchmarks/latency.py --adapter_path ./adapter --n_samples 50
 
 ### MLX on-device (run on the MacBook, not Colab)
 ```bash
-python mlx/convert.py --adapter_path ./adapter        # fuse + convert to 4-bit MLX
+python mlx_tools/convert.py --adapter_path ./adapter        # fuse + convert to 4-bit MLX
 python benchmarks/mlx_bench.py                        # tokens/sec on M1
 # close other apps first — 8GB unified memory, model is ~2.5GB in 4-bit
 ```
@@ -238,7 +238,7 @@ class SmartReply(BaseModel):
 `outlines.generate.json(model, SmartReply)` handles the constrained sampling.
 `outlines` works cleanly with Qwen3 — no fallback path needed.
 
-### 4. On-device inference with Apple MLX (`mlx/`)
+### 4. On-device inference with Apple MLX (`mlx_tools/`)
 
 The Apple-alignment centrepiece. After training:
 
@@ -323,7 +323,7 @@ This table exists so Claude understands which code is career-relevant.
 | adapters | `train/config.py` LoRA config, README, model card |
 | speculative decoding | `inference/speculative_decode.py`, `benchmarks/latency.py` |
 | guided generation | `inference/guided_gen.py`, Smart Reply tab |
-| on-device / Apple Silicon | `mlx/convert.py`, `benchmarks/mlx_bench.py`, README |
+| on-device / Apple Silicon | `mlx_tools/convert.py`, `benchmarks/mlx_bench.py`, README |
 | PyTorch | training loop, inference pipeline |
 | NLP / Generative AI | entire project |
 | production software (Python) | all scripts — type-hinted, CLI args via argparse |
@@ -359,7 +359,7 @@ Recruiters skim the tables; engineers read this. Must cover, briefly:
 - **Never load two 4B models on the M1** — speculative decoding benchmarks (draft + verify
   in memory simultaneously) run on Colab T4 only. The M1 runs the single fused MLX model.
 - **bitsandbytes is CUDA-only** — any script importing it must never run on the Mac.
-  Keep MLX code paths fully separate (`mlx/` and `benchmarks/mlx_bench.py`).
+  Keep MLX code paths fully separate (`mlx_tools/` and `benchmarks/mlx_bench.py`).
 - **Spaces requirements.txt** — keep `app/requirements.txt` minimal and pinned; Spaces
   build failures from unpinned transformers/outlines versions are the most common
   deployment time-sink.
