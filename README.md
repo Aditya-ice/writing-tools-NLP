@@ -45,9 +45,9 @@ python inference/pipeline.py --task summarise --input "..." --adapter_path ./ada
 
 | Asset | URL |
 |---|---|
-| Model adapter | [aditya-ice/writing-tools-qwen3](https://huggingface.co/aditya-ice/writing-tools-qwen3) |
-| MLX 4-bit model | [aditya-ice/writing-tools-qwen3-mlx-4bit](https://huggingface.co/aditya-ice/writing-tools-qwen3-mlx-4bit) |
-| Spaces demo | [aditya-ice/writing-tools-nlp](https://huggingface.co/spaces/aditya-ice/writing-tools-nlp) |
+| Model adapter | [Adi-cookieNmilk/writing-tools-qwen3](https://huggingface.co/Adi-cookieNmilk/writing-tools-qwen3) |
+| MLX 4-bit model | [Adi-cookieNmilk/writing-tools-qwen3-mlx-4bit](https://huggingface.co/Adi-cookieNmilk/writing-tools-qwen3-mlx-4bit) |
+| Spaces demo | [Adi-cookieNmilk/writing-tools-nlp](https://huggingface.co/spaces/Adi-cookieNmilk/writing-tools-nlp) |
 
 ## Status
 
