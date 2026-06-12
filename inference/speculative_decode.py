@@ -18,19 +18,23 @@ def draft_generate(
 ) -> tuple[torch.Tensor, torch.Tensor]:
     """Autoregressively draft K tokens. Returns (candidate_ids, log_probs) of shape (K,)."""
     current = input_ids
-    candidate_ids: list[torch.Tensor] = []
-    candidate_log_probs: list[torch.Tensor] = []
+    ids: list[int] = []
+    log_probs: list[torch.Tensor] = []
 
     with torch.no_grad():
         for _ in range(K):
             logits = model(current).logits[:, -1, :]
-            log_probs = _log_probs(logits)
+            step_log_probs = _log_probs(logits)
             next_id = torch.argmax(logits, dim=-1, keepdim=True)
-            candidate_ids.append(next_id.squeeze(-1))
-            candidate_log_probs.append(log_probs.gather(1, next_id).squeeze(-1))
-            current = torch.cat([current, next_id], dim=-1)
+            ids.append(int(next_id.item()))
+            log_probs.append(step_log_probs.gather(1, next_id).squeeze())
+            current = torch.cat([current, next_id], dim=1)
 
-    return torch.stack(candidate_ids), torch.stack(candidate_log_probs)
+    device = input_ids.device
+    return (
+        torch.tensor(ids, device=device, dtype=input_ids.dtype),
+        torch.stack(log_probs),
+    )
 
 
 def _sample_from_adjusted(
@@ -81,7 +85,9 @@ def speculative_decode(
             )
             draft_proposed += gamma
 
-            verify_input = torch.cat([current, candidate_ids.unsqueeze(0)], dim=1)
+            verify_input = torch.cat(
+                [current, candidate_ids.unsqueeze(0)], dim=1
+            )
             verify_logits = verify_model(verify_input).logits
             prefix_len = current.shape[1]
 
