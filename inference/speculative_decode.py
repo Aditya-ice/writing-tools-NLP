@@ -74,7 +74,7 @@ def speculative_decode(
         while len(generated) < max_new_tokens:
             gamma = min(K, max_new_tokens - len(generated))
             prefix = (
-                torch.tensor([generated], device=device, dtype=torch.dtype(input_ids.dtype))
+                torch.tensor([generated], device=device, dtype=input_ids.dtype)
                 if generated
                 else torch.empty((1, 0), device=device, dtype=input_ids.dtype)
             )
