@@ -61,7 +61,7 @@ def load_draft_model() -> AutoModelForCausalLM:
     dtype = torch.float16
     return AutoModelForCausalLM.from_pretrained(
         DRAFT_MODEL_ID,
-        torch_dtype=dtype,
+        dtype=dtype,
         device_map="auto",
         trust_remote_code=True,
     )
